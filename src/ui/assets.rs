@@ -4,7 +4,7 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>__SITE_NAME__ - Oxide_CG (React & AI Tuner)</title>
+  <title>__SITE_NAME__ - Oxide_CG Admin Hub</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -20,8 +20,6 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
           },
           colors: {
             brand: {
-              50: '#ecfdf5',
-              100: '#d1fae5',
               400: '#34d399',
               500: '#10b981',
               600: '#059669',
@@ -515,8 +513,8 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
         title = 'Approval Workflow Queue';
         subtitle = 'Review sensitive field modifications before they go live';
       } else if (currentTab === 'react-sdk') {
-        title = 'React Ecosystem & TypeScript SDK';
-        subtitle = 'Auto-generated React client, query hooks, and Next.js integration';
+        title = 'React Ecosystem & Frontend SDKs';
+        subtitle = 'Auto-generated TypeScript client SDKs for React, Vue 3, and Angular 17+';
       }
 
       return (
@@ -569,7 +567,7 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
                 <button
                   key={s.name}
                   onClick={() => onNavigateModel(s.name.toLowerCase())}
-                  className="p-5 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-brand-500/50 text-left transition flex items-center justify-between group shadow-sm hover:shadow-lg hover:shadow-brand-500/5"
+                  className="p-5 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-brand-500/50 text-left transition flex items-center justify-between group shadow-sm hover:shadow-lg hover:shadow-brand-500/5 cursor-pointer"
                 >
                   <div>
                     <div className="font-bold text-white group-hover:text-brand-400 transition text-base">{s.display_name}</div>
@@ -861,7 +859,7 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
             <button
               type="submit"
               disabled={!quickTitle.trim() || quickSaving}
-              className="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-white text-xs font-semibold rounded-lg transition"
+              className="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-white text-xs font-semibold rounded-lg transition cursor-pointer"
             >
               {quickSaving ? 'Adding...' : 'Add ↵'}
             </button>
@@ -941,14 +939,14 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
               <button
                 disabled={offset === 0}
                 onClick={() => setOffset(Math.max(0, offset - limit))}
-                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 rounded-lg transition font-medium text-white"
+                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 rounded-lg transition font-medium text-white cursor-pointer"
               >
                 Previous
               </button>
               <button
                 disabled={offset + limit >= total}
                 onClick={() => setOffset(offset + limit)}
-                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 rounded-lg transition font-medium text-white"
+                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 rounded-lg transition font-medium text-white cursor-pointer"
               >
                 Next
               </button>
@@ -1106,13 +1104,13 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
                       setFormData(sample);
                       setErrorMessage('');
                     }}
-                    className="px-3 py-1.5 bg-brand-500/10 hover:bg-brand-500/20 text-brand-400 border border-brand-500/30 rounded-lg text-xs font-semibold transition flex items-center space-x-1"
+                    className="px-3 py-1.5 bg-brand-500/10 hover:bg-brand-500/20 text-brand-400 border border-brand-500/30 rounded-lg text-xs font-semibold transition flex items-center space-x-1 cursor-pointer"
                     title="Auto-fill sample data for rapid testing"
                   >
                     <span>✨ Auto-Fill Sample</span>
                   </button>
                 )}
-                <button onClick={onClose} title="Close (Esc)" className="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition">
+                <button onClick={onClose} title="Close (Esc)" className="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition cursor-pointer">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
               </div>
@@ -1268,7 +1266,7 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
 
               {/* MODAL ACTIONS */}
               <div className="pt-4 border-t border-slate-800 flex justify-end space-x-3 sticky bottom-0 bg-slate-900/90 py-3 backdrop-blur-md rounded-b-xl">
-                <button type="button" onClick={onClose} disabled={saving} className="px-5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                <button type="button" onClick={onClose} disabled={saving} className="px-5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition cursor-pointer">
                   Cancel
                 </button>
                 <button
@@ -1374,7 +1372,7 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
                         {log.action === 'DELETE' || log.action === 'UPDATE' ? (
                           <button
                             onClick={() => handleRollback(log.id)}
-                            className="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-lg transition shadow-md"
+                            className="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-lg transition shadow-md cursor-pointer"
                           >
                             Rollback ↺
                           </button>
@@ -1486,8 +1484,8 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
                           </div>
                         </td>
                         <td className="px-4 py-3 text-right space-x-2 font-sans">
-                          <button onClick={() => handleApprove(app.id)} className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg transition">Approve</button>
-                          <button onClick={() => handleReject(app.id)} className="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-lg transition">Reject</button>
+                          <button onClick={() => handleApprove(app.id)} className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg transition cursor-pointer">Approve</button>
+                          <button onClick={() => handleReject(app.id)} className="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-lg transition cursor-pointer">Reject</button>
                         </td>
                       </tr>
                     );
@@ -1518,7 +1516,6 @@ export default function App() {
 }
 
 function ProductCatalog() {
-  // Query with auto-filtering, sorting, and pagination
   const { data: products, total, isLoading } = useOxideQuery('Product', {
     order: '-created_at',
     filters: { in_stock: true, price__gte: 50 },
@@ -1546,7 +1543,6 @@ function ProductCatalog() {
 <script setup lang="ts">
 import { useOxideVueQuery, useOxideVueMutation } from './oxide-vue';
 
-// Reactive query with Vue ref & computed signals
 const { data: products, total, isLoading, refetch } = useOxideVueQuery('Product', {
   order: '-created_at',
   filters: { in_stock: true, price__gte: 50 },
@@ -1554,7 +1550,7 @@ const { data: products, total, isLoading, refetch } = useOxideVueQuery('Product'
 });
 
 const { remove } = useOxideVueMutation('Product');
-</script>
+<\/script>
 
 <template>
   <div>
@@ -1590,7 +1586,6 @@ import { OxideService } from './oxide-angular';
 export class ProductListComponent {
   private oxide = inject(OxideService);
 
-  // Angular Signal Query
   readonly query = this.oxide.createSignalQuery('Product', {
     order: '-created_at',
     filters: { in_stock: true },
@@ -1634,7 +1629,7 @@ export class ProductListComponent {
             <div className="flex space-x-2 border-b border-slate-800 pb-3 mb-4">
               <button
                 onClick={() => setActiveFramework('react')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 ${
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 cursor-pointer ${
                   activeFramework === 'react' ? 'bg-react-500/20 text-react-300 border border-react-500/40' : 'text-slate-400 hover:bg-slate-800'
                 }`}
               >
@@ -1643,7 +1638,7 @@ export class ProductListComponent {
               </button>
               <button
                 onClick={() => setActiveFramework('vue')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 ${
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 cursor-pointer ${
                   activeFramework === 'vue' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'text-slate-400 hover:bg-slate-800'
                 }`}
               >
@@ -1652,7 +1647,7 @@ export class ProductListComponent {
               </button>
               <button
                 onClick={() => setActiveFramework('angular')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 ${
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 cursor-pointer ${
                   activeFramework === 'angular' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : 'text-slate-400 hover:bg-slate-800'
                 }`}
               >
