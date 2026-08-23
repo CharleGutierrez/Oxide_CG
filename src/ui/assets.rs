@@ -860,6 +860,14 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
             initial[f.name] = (f.field_type.config?.choices || [])[0] || 'Medium';
           } else if (f.name === 'category') {
             initial[f.name] = 'General';
+          } else if (f.name === 'title' || f.name === 'name') {
+            initial[f.name] = `New ${schema.name} Task`;
+          } else if (f.name === 'sku') {
+            initial[f.name] = `SKU-${Math.floor(1000 + Math.random() * 9000)}`;
+          } else if (f.field_type.kind === 'Money' || f.name === 'price') {
+            initial[f.name] = 29.99;
+          } else if (f.field_type.kind === 'Email') {
+            initial[f.name] = 'user@example.com';
           } else {
             initial[f.name] = '';
           }
