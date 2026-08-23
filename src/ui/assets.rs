@@ -857,7 +857,9 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
           } else if (f.field_type.kind === 'ProgressBar') {
             initial[f.name] = 0;
           } else if (f.field_type.kind === 'Enum') {
-            initial[f.name] = (f.field_type.config?.choices || [])[0] || '';
+            initial[f.name] = (f.field_type.config?.choices || [])[0] || 'Medium';
+          } else if (f.name === 'category') {
+            initial[f.name] = 'General';
           } else {
             initial[f.name] = '';
           }
@@ -865,29 +867,49 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
         return initial;
       });
       const [saving, setSaving] = useState(false);
-      const [activeTab, setActiveTab] = useState('fields');
+      const [errorMessage, setErrorMessage] = useState('');
+
+      // Keyboard Escape key to close modal
+      useEffect(() => {
+        const handleKeyDown = (e) => {
+          if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+      }, [onClose]);
 
       const handleChange = (field, value) => {
+        setErrorMessage('');
         setFormData(prev => ({ ...prev, [field]: value }));
       };
 
       const handleSubmit = async (e) => {
         e.preventDefault();
         setSaving(true);
+        setErrorMessage('');
+
         const payload = {};
-        schema.fields.forEach(f => {
-          if (f.name === 'id' || f.name === 'created_at' || f.name === 'updated_at') return;
+        for (const f of schema.fields) {
+          if (f.name === 'id' || f.name === 'created_at' || f.name === 'updated_at') continue;
           const val = formData[f.name];
+
+          // Validate required fields
+          if (f.required && (val === undefined || val === null || val === '')) {
+            setErrorMessage(`Field "${f.display_name}" is required.`);
+            setSaving(false);
+            return;
+          }
+
           if (f.field_type.kind === 'Integer' || f.field_type.kind === 'ForeignKey') {
-            payload[f.name] = parseInt(val, 10) || 0;
+            payload[f.name] = val !== '' ? (parseInt(val, 10) || 0) : null;
           } else if (f.field_type.kind === 'Float' || f.field_type.kind === 'Money' || f.field_type.kind === 'ProgressBar') {
-            payload[f.name] = parseFloat(val) || 0.0;
+            payload[f.name] = val !== '' ? (parseFloat(val) || 0.0) : null;
           } else if (f.field_type.kind === 'Boolean') {
             payload[f.name] = Boolean(val);
           } else {
             payload[f.name] = val;
           }
-        });
+        }
 
         const isEdit = record !== null && record !== undefined;
         const url = isEdit ? `/api/d/${schema.name.toLowerCase()}/${record.id}` : `/api/d/${schema.name.toLowerCase()}`;
@@ -898,39 +920,54 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
           if (res.success) {
             onSaved();
           } else {
-            showToast(res.message || 'Error saving record', true);
+            const errText = res.error?.message || res.message || 'Error saving record';
+            setErrorMessage(errText);
+            showToast(errText, true);
           }
         } catch (err) {
-          showToast('Failed to save record', true);
+          const errText = err.message || 'Failed to save record';
+          setErrorMessage(errText);
+          showToast(errText, true);
         } finally {
           setSaving(false);
         }
       };
 
       return (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="glass max-w-2xl w-full max-h-[90vh] flex flex-col rounded-2xl shadow-2xl border border-slate-800 animate-in fade-in zoom-in-95 duration-200">
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150"
+        >
+          <div className="glass max-w-2xl w-full max-h-[90vh] flex flex-col rounded-2xl shadow-2xl border border-slate-800 animate-in zoom-in-95 duration-200">
             {/* MODAL HEADER */}
             <div className="p-6 border-b border-slate-800 flex items-center justify-between bg-slate-900/60 rounded-t-2xl">
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 rounded-lg bg-brand-500/20 text-brand-400 border border-brand-500/30 flex items-center justify-center font-bold text-sm">
+                <div className="w-9 h-9 rounded-xl bg-brand-500/20 text-brand-400 border border-brand-500/30 flex items-center justify-center font-bold text-base shadow-sm">
                   {record ? '✏️' : '➕'}
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white">
-                    {record ? `Edit ${schema.name} #${record.id}` : `New ${schema.name}`}
+                  <h3 className="text-lg font-bold text-white flex items-center space-x-2">
+                    <span>{record ? `Edit ${schema.name} #${record.id}` : `Create New ${schema.name}`}</span>
                   </h3>
-                  <p className="text-xs text-slate-400">Table: <code className="text-brand-400 font-mono">{schema.table_name}</code> &bull; {schema.fields.length} schema fields</p>
+                  <p className="text-xs text-slate-400">Database Table: <code className="text-brand-400 font-mono">{schema.table_name}</code> &bull; {schema.fields.length} schema fields</p>
                 </div>
               </div>
-              <button onClick={onClose} className="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition">
+              <button onClick={onClose} title="Close (Esc)" className="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
             </div>
 
+            {/* ERROR BANNER */}
+            {errorMessage && (
+              <div className="mx-6 mt-4 p-3.5 bg-rose-500/15 border border-rose-500/40 rounded-xl text-rose-300 text-xs font-medium flex items-center space-x-2 animate-in fade-in duration-200">
+                <span className="text-sm">⚠️</span>
+                <span className="flex-1">{errorMessage}</span>
+              </div>
+            )}
+
             {/* MODAL FORM BODY */}
             <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-5">
-              {schema.fields.filter(f => f.name !== 'id' && f.name !== 'created_at' && f.name !== 'updated_at').map(f => {
+              {schema.fields.filter(f => f.name !== 'id' && f.name !== 'created_at' && f.name !== 'updated_at').map((f, idx) => {
                 const isBool = f.field_type.kind === 'Boolean';
                 const isProgress = f.field_type.kind === 'ProgressBar';
                 const isMoney = f.field_type.kind === 'Money';
@@ -940,7 +977,7 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
                 const isImage = f.field_type.kind === 'Image' || f.field_type.kind === 'File';
 
                 return (
-                  <div key={f.name} className="space-y-1.5 p-3 rounded-xl bg-slate-900/40 border border-slate-800/80">
+                  <div key={f.name} className="space-y-1.5 p-3.5 rounded-xl bg-slate-900/40 border border-slate-800/80 hover:border-slate-700 transition">
                     <div className="flex items-center justify-between">
                       <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 flex items-center">
                         <span>{f.display_name}</span>
@@ -971,9 +1008,9 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
                       /* WIDGET 2: PROGRESS BAR WITH LIVE SLIDER */
                       <div className="space-y-2 pt-1">
                         <div className="flex items-center justify-between text-xs font-mono">
-                          <span className="text-slate-400">Value: {formData[f.name] || 0} / {f.field_type.config?.max || 100}</span>
-                          <span className="text-brand-400 font-bold">
-                            {Math.round(((Number(formData[f.name]) || 0) / (f.field_type.config?.max || 100)) * 100)}%
+                          <span className="text-slate-400">Progress: {formData[f.name] || 0} / {f.field_type.config?.max || 100}</span>
+                          <span className="text-brand-400 font-bold bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded">
+                            {Math.round(((Number(formData[f.name]) || 0) / (f.field_type.config?.max || 100)) * 100)}% Complete
                           </span>
                         </div>
                         <input
@@ -1049,6 +1086,7 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
                     ) : (
                       /* WIDGET 8: STANDARD TEXT / NUMBER INPUT */
                       <input
+                        autoFocus={idx === 0}
                         type={f.field_type.kind === 'Password' ? 'password' : (f.field_type.kind === 'Integer' || f.field_type.kind === 'Float' ? 'number' : 'text')}
                         step={f.field_type.kind === 'Float' ? '0.01' : undefined}
                         value={formData[f.name] !== undefined ? formData[f.name] : ''}
@@ -1066,16 +1104,25 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
 
               {/* MODAL ACTIONS */}
               <div className="pt-4 border-t border-slate-800 flex justify-end space-x-3 sticky bottom-0 bg-slate-900/90 py-2 backdrop-blur-md rounded-b-xl">
-                <button type="button" onClick={onClose} className="px-5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                <button type="button" onClick={onClose} disabled={saving} className="px-5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-6 py-2.5 bg-gradient-to-r from-brand-500 to-emerald-400 hover:from-brand-600 hover:to-emerald-500 text-black text-sm font-bold rounded-xl transition shadow-lg shadow-brand-500/25 flex items-center space-x-2"
+                  className="px-6 py-2.5 bg-gradient-to-r from-brand-500 to-emerald-400 hover:from-brand-600 hover:to-emerald-500 disabled:opacity-50 text-black text-sm font-bold rounded-xl transition shadow-lg shadow-brand-500/25 flex items-center space-x-2"
                 >
-                  <span>{saving ? 'Saving...' : (record ? 'Update Record' : 'Create Record')}</span>
-                  <span>&rarr;</span>
+                  {saving ? (
+                    <>
+                      <span className="animate-spin inline-block mr-1">⏳</span>
+                      <span>{record ? 'Updating Record...' : 'Creating Record...'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>{record ? 'Update Record' : 'Create Record'}</span>
+                      <span>&rarr;</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>
