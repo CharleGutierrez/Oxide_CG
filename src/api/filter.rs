@@ -163,11 +163,30 @@ impl QueryOptions {
         let count_sql = format!("SELECT COUNT(*) as total FROM \"{}\" {}", schema.table_name, where_clause);
         let count_params = params.clone();
 
-        // Select query
-        let order_clause = self.order_by.as_deref().unwrap_or("id DESC");
+        // Select query with strict ORDER BY whitelist validation against schema fields
+        let validated_order = if let Some(ref raw_order) = self.order_by {
+            let (field_name, is_desc) = if raw_order.ends_with(" DESC") {
+                let name = raw_order.trim_start_matches('"').trim_end_matches("\" DESC");
+                (name, true)
+            } else if raw_order.ends_with(" ASC") {
+                let name = raw_order.trim_start_matches('"').trim_end_matches("\" ASC");
+                (name, false)
+            } else {
+                (raw_order.as_str(), false)
+            };
+
+            if schema.get_field(field_name).is_some() {
+                format!("\"{}\" {}", field_name, if is_desc { "DESC" } else { "ASC" })
+            } else {
+                "\"id\" DESC".to_string()
+            }
+        } else {
+            "\"id\" DESC".to_string()
+        };
+
         let select_sql = format!(
             "SELECT * FROM \"{}\" {} ORDER BY {} LIMIT ? OFFSET ?",
-            schema.table_name, where_clause, order_clause
+            schema.table_name, where_clause, validated_order
         );
 
         params.push(Value::Number(self.limit.into()));

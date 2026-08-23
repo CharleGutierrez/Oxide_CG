@@ -100,7 +100,7 @@ impl AuthService {
         Ok(None)
     }
 
-    /// Validate session token from Cookie or Bearer header
+    /// Validate session token from Cookie or Bearer header with expiration enforcement
     pub async fn validate_session(&self, token: &str) -> Result<Option<AuthUser>, OxideError> {
         let row_opt = sqlx::query(
             r#"
@@ -116,6 +116,18 @@ impl AuthService {
         .await?;
 
         if let Some(row) = row_opt {
+            let expires_at_str: String = row.try_get("expires_at")?;
+            if let Ok(exp) = chrono::DateTime::parse_from_rfc3339(&expires_at_str) {
+                if exp < chrono::Utc::now() {
+                    // Session expired! Purge expired session
+                    let _ = sqlx::query("DELETE FROM _oxide_sessions WHERE token = ?")
+                        .bind(token)
+                        .execute(&self.pool)
+                        .await;
+                    return Ok(None);
+                }
+            }
+
             let role_str: String = row.try_get("role")?;
             return Ok(Some(AuthUser {
                 id: row.try_get("id")?,

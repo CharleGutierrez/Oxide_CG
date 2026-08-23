@@ -25,7 +25,7 @@ impl Crypto {
         format!("$s2${}${}", salt, hash)
     }
 
-    /// Verify plaintext password against stored hash in constant time
+    /// Verify plaintext password against stored hash in constant time to prevent timing attacks
     pub fn verify_password(password: &str, stored_hash: &str) -> bool {
         let parts: Vec<&str> = stored_hash.split('$').collect();
         if parts.len() != 4 || parts[1] != "s2" {
@@ -40,6 +40,15 @@ impl Crypto {
         hasher.update(password.as_bytes());
         let actual_hash = hex::encode(hasher.finalize());
 
-        actual_hash == expected_hash
+        if actual_hash.len() != expected_hash.len() {
+            return false;
+        }
+
+        // Constant-time byte comparison
+        let mut diff = 0u8;
+        for (a, b) in actual_hash.bytes().zip(expected_hash.bytes()) {
+            diff |= a ^ b;
+        }
+        diff == 0
     }
 }
