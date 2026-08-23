@@ -969,7 +969,7 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
       );
     }
 
-    // DYNAMIC REACT RECORD MODAL FORM (ENHANCED COMPLETE WIDGETS)
+    // DYNAMIC REACT RECORD MODAL FORM (ENHANCED COMPLETE WIDGETS WITH LIVE PREVIEW)
     function RecordModal({ schema, record, onClose, onSaved, showToast }) {
       const [formData, setFormData] = useState(() => {
         const initial = {};
@@ -1028,7 +1028,6 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
           if (f.name === 'id' || f.name === 'created_at' || f.name === 'updated_at') continue;
           const val = formData[f.name];
 
-          // Validate required fields
           if (f.required && (val === undefined || val === null || val === '')) {
             setErrorMessage(`Field "${f.display_name}" is required.`);
             setSaving(false);
@@ -1071,20 +1070,20 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
       return (
         <div 
           onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150"
         >
           <div className="glass max-w-2xl w-full max-h-[90vh] flex flex-col rounded-2xl shadow-2xl border border-slate-800 animate-in zoom-in-95 duration-200">
             {/* MODAL HEADER */}
-            <div className="p-6 border-b border-slate-800 flex items-center justify-between bg-slate-900/60 rounded-t-2xl">
+            <div className="p-6 border-b border-slate-800 flex items-center justify-between bg-slate-900/70 rounded-t-2xl">
               <div className="flex items-center space-x-3">
-                <div className="w-9 h-9 rounded-xl bg-brand-500/20 text-brand-400 border border-brand-500/30 flex items-center justify-center font-bold text-base shadow-sm">
+                <div className="w-10 h-10 rounded-xl bg-brand-500/20 text-brand-400 border border-brand-500/30 flex items-center justify-center font-bold text-lg shadow-sm">
                   {record ? '✏️' : '➕'}
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-white flex items-center space-x-2">
                     <span>{record ? `Edit ${schema.name} #${record.id}` : `Create New ${schema.name}`}</span>
                   </h3>
-                  <p className="text-xs text-slate-400">Database Table: <code className="text-brand-400 font-mono">{schema.table_name}</code> &bull; {schema.fields.length} schema fields</p>
+                  <p className="text-xs text-slate-400">Database Table: <code className="text-brand-400 font-mono">{schema.table_name}</code> &bull; Complete Form</p>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
@@ -1107,10 +1106,10 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
                       setFormData(sample);
                       setErrorMessage('');
                     }}
-                    className="px-2.5 py-1 bg-brand-500/10 hover:bg-brand-500/20 text-brand-400 border border-brand-500/30 rounded-lg text-xs font-semibold transition"
+                    className="px-3 py-1.5 bg-brand-500/10 hover:bg-brand-500/20 text-brand-400 border border-brand-500/30 rounded-lg text-xs font-semibold transition flex items-center space-x-1"
                     title="Auto-fill sample data for rapid testing"
                   >
-                    ✨ Auto-Fill Sample
+                    <span>✨ Auto-Fill Sample</span>
                   </button>
                 )}
                 <button onClick={onClose} title="Close (Esc)" className="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition">
@@ -1129,150 +1128,153 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
 
             {/* MODAL FORM BODY */}
             <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-5">
-              {schema.fields.filter(f => f.name !== 'id' && f.name !== 'created_at' && f.name !== 'updated_at').map((f, idx) => {
-                const isBool = f.field_type.kind === 'Boolean';
-                const isProgress = f.field_type.kind === 'ProgressBar';
-                const isMoney = f.field_type.kind === 'Money';
-                const isHtml = f.field_type.kind === 'Html' || f.field_type.kind === 'Markdown';
-                const isEnum = f.field_type.kind === 'Enum';
-                const isJson = f.field_type.kind === 'Json';
-                const isImage = f.field_type.kind === 'Image' || f.field_type.kind === 'File';
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {schema.fields.filter(f => f.name !== 'id' && f.name !== 'created_at' && f.name !== 'updated_at').map((f, idx) => {
+                  const isBool = f.field_type.kind === 'Boolean';
+                  const isProgress = f.field_type.kind === 'ProgressBar';
+                  const isMoney = f.field_type.kind === 'Money';
+                  const isHtml = f.field_type.kind === 'Html' || f.field_type.kind === 'Markdown';
+                  const isEnum = f.field_type.kind === 'Enum';
+                  const isJson = f.field_type.kind === 'Json';
+                  const isImage = f.field_type.kind === 'Image' || f.field_type.kind === 'File';
+                  const fullWidth = isHtml || isJson || isProgress || f.name === 'title' || f.name === 'name';
 
-                return (
-                  <div key={f.name} className="space-y-1.5 p-3.5 rounded-xl bg-slate-900/40 border border-slate-800/80 hover:border-slate-700 transition">
-                    <div className="flex items-center justify-between">
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 flex items-center">
-                        <span>{f.display_name}</span>
-                        {f.required && <span className="text-rose-400 ml-1 font-bold">*</span>}
-                        {f.requires_approval && (
-                          <span className="ml-2 text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono border border-amber-500/30">
-                            🛡️ Approval Required
-                          </span>
-                        )}
-                      </label>
-                      <span className="text-[10px] text-slate-500 font-mono">{f.name}</span>
-                    </div>
+                  return (
+                    <div key={f.name} className={`space-y-1.5 p-3.5 rounded-xl bg-slate-900/50 border border-slate-800/90 hover:border-slate-700 transition ${fullWidth ? 'md:col-span-2' : ''}`}>
+                      <div className="flex items-center justify-between">
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 flex items-center">
+                          <span>{f.display_name}</span>
+                          {f.required && <span className="text-rose-400 ml-1 font-bold">*</span>}
+                          {f.requires_approval && (
+                            <span className="ml-2 text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono border border-amber-500/30">
+                              🛡️ Approval Required
+                            </span>
+                          )}
+                        </label>
+                        <span className="text-[10px] text-slate-500 font-mono">{f.name}</span>
+                      </div>
 
-                    {/* WIDGET 1: BOOLEAN TOGGLE */}
-                    {isBool ? (
-                      <label className="flex items-center space-x-3 cursor-pointer py-1.5">
-                        <input
-                          type="checkbox"
-                          checked={Boolean(formData[f.name])}
-                          onChange={(e) => handleChange(f.name, e.target.checked)}
-                          className="w-5 h-5 rounded text-brand-500 bg-slate-900 border-slate-700 cursor-pointer focus:ring-0"
-                        />
-                        <span className="text-sm font-medium text-slate-200">
-                          {Boolean(formData[f.name]) ? 'Active / Enabled (TRUE)' : 'Disabled / Inactive (FALSE)'}
-                        </span>
-                      </label>
-                    ) : isProgress ? (
-                      /* WIDGET 2: PROGRESS BAR WITH LIVE SLIDER */
-                      <div className="space-y-2 pt-1">
-                        <div className="flex items-center justify-between text-xs font-mono">
-                          <span className="text-slate-400">Progress: {formData[f.name] || 0} / {f.field_type.config?.max || 100}</span>
-                          <span className="text-brand-400 font-bold bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded">
-                            {Math.round(((Number(formData[f.name]) || 0) / (f.field_type.config?.max || 100)) * 100)}% Complete
+                      {/* WIDGET 1: BOOLEAN TOGGLE */}
+                      {isBool ? (
+                        <label className="flex items-center space-x-3 cursor-pointer py-1.5">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(formData[f.name])}
+                            onChange={(e) => handleChange(f.name, e.target.checked)}
+                            className="w-5 h-5 rounded text-brand-500 bg-slate-900 border-slate-700 cursor-pointer focus:ring-0"
+                          />
+                          <span className="text-sm font-medium text-slate-200">
+                            {Boolean(formData[f.name]) ? '✓ Active / Enabled (TRUE)' : '✕ Disabled / Inactive (FALSE)'}
                           </span>
+                        </label>
+                      ) : isProgress ? (
+                        /* WIDGET 2: PROGRESS BAR WITH LIVE SLIDER */
+                        <div className="space-y-2 pt-1">
+                          <div className="flex items-center justify-between text-xs font-mono">
+                            <span className="text-slate-400">Progress: {formData[f.name] || 0} / {f.field_type.config?.max || 100}</span>
+                            <span className="text-brand-400 font-bold bg-brand-500/10 border border-brand-500/20 px-2 py-0.5 rounded">
+                              {Math.round(((Number(formData[f.name]) || 0) / (f.field_type.config?.max || 100)) * 100)}% Complete
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min="0"
+                            max={f.field_type.config?.max || 100}
+                            value={formData[f.name] || 0}
+                            onChange={(e) => handleChange(f.name, e.target.value)}
+                            className="w-full accent-brand-500 cursor-pointer"
+                          />
                         </div>
-                        <input
-                          type="range"
-                          min="0"
-                          max={f.field_type.config?.max || 100}
-                          value={formData[f.name] || 0}
-                          onChange={(e) => handleChange(f.name, e.target.value)}
-                          className="w-full accent-brand-500 cursor-pointer"
-                        />
-                      </div>
-                    ) : isMoney ? (
-                      /* WIDGET 3: MONEY WITH CURRENCY BADGE */
-                      <div className="relative">
-                        <span className="absolute left-3.5 top-2.5 text-xs font-bold text-emerald-400 font-mono">
-                          {f.field_type.config?.currency || '$'}
-                        </span>
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={formData[f.name] !== undefined ? formData[f.name] : ''}
-                          onChange={(e) => handleChange(f.name, e.target.value)}
-                          placeholder="0.00"
-                          className="w-full pl-8 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-slate-100 focus:border-brand-500 font-mono"
-                          required={f.required}
-                        />
-                      </div>
-                    ) : isHtml ? (
-                      /* WIDGET 4: HTML & MARKDOWN TEXTAREA */
-                      <textarea
-                        rows="4"
-                        value={formData[f.name] || ''}
-                        onChange={(e) => handleChange(f.name, e.target.value)}
-                        placeholder="Enter HTML or Markdown formatted content..."
-                        className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-slate-100 focus:border-brand-500 font-mono text-xs leading-relaxed"
-                      />
-                    ) : isEnum ? (
-                      /* WIDGET 5: ENUM SELECT */
-                      <select
-                        value={formData[f.name] || ''}
-                        onChange={(e) => handleChange(f.name, e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-slate-100 focus:border-brand-500 cursor-pointer"
-                      >
-                        {(f.field_type.config?.choices || []).map(choice => (
-                          <option key={choice} value={choice}>{choice}</option>
-                        ))}
-                      </select>
-                    ) : isJson ? (
-                      /* WIDGET 6: JSON EDITOR */
-                      <textarea
-                        rows="3"
-                        value={typeof formData[f.name] === 'object' ? JSON.stringify(formData[f.name], null, 2) : formData[f.name] || ''}
-                        onChange={(e) => handleChange(f.name, e.target.value)}
-                        placeholder="{}"
-                        className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-slate-100 focus:border-brand-500 font-mono text-xs"
-                      />
-                    ) : isImage ? (
-                      /* WIDGET 7: IMAGE / FILE PATH WITH PREVIEW */
-                      <div className="space-y-2">
-                        <input
-                          type="text"
+                      ) : isMoney ? (
+                        /* WIDGET 3: MONEY WITH CURRENCY BADGE */
+                        <div className="relative">
+                          <span className="absolute left-3.5 top-2.5 text-xs font-bold text-emerald-400 font-mono">
+                            {f.field_type.config?.currency || '$'}
+                          </span>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={formData[f.name] !== undefined ? formData[f.name] : ''}
+                            onChange={(e) => handleChange(f.name, e.target.value)}
+                            placeholder="0.00"
+                            className="w-full pl-8 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-slate-100 focus:border-brand-500 font-mono"
+                            required={f.required}
+                          />
+                        </div>
+                      ) : isHtml ? (
+                        /* WIDGET 4: HTML & MARKDOWN TEXTAREA */
+                        <textarea
+                          rows="4"
                           value={formData[f.name] || ''}
                           onChange={(e) => handleChange(f.name, e.target.value)}
-                          placeholder="/uploads/images/sample.jpg"
-                          className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-slate-100 focus:border-brand-500"
+                          placeholder="Enter HTML or Markdown formatted content..."
+                          className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-slate-100 focus:border-brand-500 font-mono text-xs leading-relaxed"
                         />
-                        {formData[f.name] && formData[f.name].startsWith('http') && (
-                          <div className="mt-2 p-2 bg-slate-950 rounded-xl border border-slate-800 inline-block">
-                            <img src={formData[f.name]} alt="Preview" className="h-16 w-auto rounded object-cover" />
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      /* WIDGET 8: STANDARD TEXT / NUMBER INPUT */
-                      <input
-                        autoFocus={idx === 0}
-                        type={f.field_type.kind === 'Password' ? 'password' : (f.field_type.kind === 'Integer' || f.field_type.kind === 'Float' ? 'number' : 'text')}
-                        step={f.field_type.kind === 'Float' ? '0.01' : undefined}
-                        value={formData[f.name] !== undefined ? formData[f.name] : ''}
-                        onChange={(e) => handleChange(f.name, e.target.value)}
-                        placeholder={`Enter ${f.display_name}...`}
-                        className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-slate-100 focus:border-brand-500"
-                        required={f.required}
-                      />
-                    )}
+                      ) : isEnum ? (
+                        /* WIDGET 5: ENUM SELECT */
+                        <select
+                          value={formData[f.name] || ''}
+                          onChange={(e) => handleChange(f.name, e.target.value)}
+                          className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-slate-100 focus:border-brand-500 cursor-pointer"
+                        >
+                          {(f.field_type.config?.choices || []).map(choice => (
+                            <option key={choice} value={choice}>{choice}</option>
+                          ))}
+                        </select>
+                      ) : isJson ? (
+                        /* WIDGET 6: JSON EDITOR */
+                        <textarea
+                          rows="3"
+                          value={typeof formData[f.name] === 'object' ? JSON.stringify(formData[f.name], null, 2) : formData[f.name] || ''}
+                          onChange={(e) => handleChange(f.name, e.target.value)}
+                          placeholder="{}"
+                          className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-slate-100 focus:border-brand-500 font-mono text-xs"
+                        />
+                      ) : isImage ? (
+                        /* WIDGET 7: IMAGE / FILE PATH WITH PREVIEW */
+                        <div className="space-y-2">
+                          <input
+                            type="text"
+                            value={formData[f.name] || ''}
+                            onChange={(e) => handleChange(f.name, e.target.value)}
+                            placeholder="/uploads/images/sample.jpg"
+                            className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-slate-100 focus:border-brand-500"
+                          />
+                          {formData[f.name] && formData[f.name].startsWith('http') && (
+                            <div className="mt-2 p-2 bg-slate-950 rounded-xl border border-slate-800 inline-block">
+                              <img src={formData[f.name]} alt="Preview" className="h-16 w-auto rounded object-cover" />
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        /* WIDGET 8: STANDARD TEXT / NUMBER INPUT */
+                        <input
+                          autoFocus={idx === 0}
+                          type={f.field_type.kind === 'Password' ? 'password' : (f.field_type.kind === 'Integer' || f.field_type.kind === 'Float' ? 'number' : 'text')}
+                          step={f.field_type.kind === 'Float' ? '0.01' : undefined}
+                          value={formData[f.name] !== undefined ? formData[f.name] : ''}
+                          onChange={(e) => handleChange(f.name, e.target.value)}
+                          placeholder={`Enter ${f.display_name}...`}
+                          className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-slate-100 focus:border-brand-500"
+                          required={f.required}
+                        />
+                      )}
 
-                    {f.help_text && <p className="text-[11px] text-slate-400 pl-1">{f.help_text}</p>}
-                  </div>
-                );
-              })}
+                      {f.help_text && <p className="text-[11px] text-slate-400 pl-1">{f.help_text}</p>}
+                    </div>
+                  );
+                })}
+              </div>
 
               {/* MODAL ACTIONS */}
-              <div className="pt-4 border-t border-slate-800 flex justify-end space-x-3 sticky bottom-0 bg-slate-900/90 py-2 backdrop-blur-md rounded-b-xl">
+              <div className="pt-4 border-t border-slate-800 flex justify-end space-x-3 sticky bottom-0 bg-slate-900/90 py-3 backdrop-blur-md rounded-b-xl">
                 <button type="button" onClick={onClose} disabled={saving} className="px-5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-6 py-2.5 bg-gradient-to-r from-brand-500 to-emerald-400 hover:from-brand-600 hover:to-emerald-500 disabled:opacity-50 text-black text-sm font-bold rounded-xl transition shadow-lg shadow-brand-500/25 flex items-center space-x-2"
+                  className="px-6 py-2.5 bg-gradient-to-r from-brand-500 to-emerald-400 hover:from-brand-600 hover:to-emerald-500 disabled:opacity-50 text-black text-sm font-bold rounded-xl transition shadow-lg shadow-brand-500/25 flex items-center space-x-2 cursor-pointer"
                 >
                   {saving ? (
                     <>
