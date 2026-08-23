@@ -301,6 +301,8 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
 
     // SIDEBAR COMPONENT
     function Sidebar({ siteName, user, schemas, currentTab, currentModel, pendingCount, onNavigate, onLogout }) {
+      const [showProfileModal, setShowProfileModal] = useState(false);
+
       const groupedSchemas = useMemo(() => {
         const groups = {};
         schemas.forEach(s => {
@@ -409,7 +411,7 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
                   }`}
                 >
                   <svg className="w-4 h-4 text-react-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
-                  <span>React Hooks & SDK</span>
+                  <span>React & Frontend SDKs</span>
                 </button>
                 <a 
                   href="/swagger" 
@@ -426,19 +428,70 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
 
           {/* USER FOOTER */}
           <div className="p-4 border-t border-slate-800 flex items-center justify-between">
-            <div className="flex items-center space-x-3 overflow-hidden">
-              <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center font-bold text-xs text-white">
+            <button 
+              onClick={() => setShowProfileModal(true)}
+              className="flex items-center space-x-3 overflow-hidden text-left hover:bg-slate-800/60 p-1.5 rounded-xl transition flex-1 mr-2"
+              title="Click to view Account & Security Details"
+            >
+              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-500 to-emerald-400 flex items-center justify-center font-bold text-xs text-black shadow-sm">
                 {user.username.charAt(0).toUpperCase()}
               </div>
               <div className="truncate">
-                <div className="text-xs font-semibold truncate text-white">{user.username}</div>
+                <div className="text-xs font-semibold truncate text-white flex items-center space-x-1">
+                  <span>{user.username}</span>
+                  <span className="text-[9px] text-slate-500">&bull; Profile</span>
+                </div>
                 <div className="text-[10px] text-brand-400 font-mono">{user.role}</div>
               </div>
-            </div>
+            </button>
             <button onClick={onLogout} title="Logout" className="text-slate-400 hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-800 transition">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
             </button>
           </div>
+
+          {/* USER PROFILE MODAL */}
+          {showProfileModal && (
+            <div 
+              onClick={(e) => { if (e.target === e.currentTarget) setShowProfileModal(false); }}
+              className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+            >
+              <div className="glass max-w-md w-full p-6 rounded-2xl border border-slate-800 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <h3 className="text-base font-bold text-white flex items-center space-x-2">
+                    <span>🛡️ Account Profile & RBAC Info</span>
+                  </h3>
+                  <button onClick={() => setShowProfileModal(false)} className="text-slate-400 hover:text-white p-1">✕</button>
+                </div>
+                <div className="space-y-3 text-xs">
+                  <div className="flex justify-between p-2.5 rounded-lg bg-slate-900/60 border border-slate-800">
+                    <span className="text-slate-400">Username:</span>
+                    <span className="text-white font-mono font-bold">{user.username}</span>
+                  </div>
+                  <div className="flex justify-between p-2.5 rounded-lg bg-slate-900/60 border border-slate-800">
+                    <span className="text-slate-400">Assigned Role:</span>
+                    <span className="text-emerald-400 font-mono font-bold">{user.role}</span>
+                  </div>
+                  <div className="flex justify-between p-2.5 rounded-lg bg-slate-900/60 border border-slate-800">
+                    <span className="text-slate-400">Security Status:</span>
+                    <span className="text-brand-400 font-bold">Active & Authenticated</span>
+                  </div>
+                  <div className="p-3 rounded-lg bg-slate-900/80 border border-slate-800 space-y-1">
+                    <span className="text-[11px] font-semibold text-slate-300 block">RBAC Capabilities:</span>
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-mono">READ: ALLOWED</span>
+                      <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-mono">CREATE: ALLOWED</span>
+                      <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-mono">UPDATE: ALLOWED</span>
+                      <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-mono">DELETE: ALLOWED</span>
+                      <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-mono">APPROVAL: MANAGER+</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="pt-2 flex justify-end">
+                  <button onClick={() => setShowProfileModal(false)} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold">Close</button>
+                </div>
+              </div>
+            </div>
+          )}
         </aside>
       );
     }
@@ -960,9 +1013,36 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
                   <p className="text-xs text-slate-400">Database Table: <code className="text-brand-400 font-mono">{schema.table_name}</code> &bull; {schema.fields.length} schema fields</p>
                 </div>
               </div>
-              <button onClick={onClose} title="Close (Esc)" className="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
-              </button>
+              <div className="flex items-center space-x-2">
+                {!record && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const sample = {};
+                      schema.fields.forEach(f => {
+                        if (f.name === 'id' || f.name === 'created_at' || f.name === 'updated_at') return;
+                        if (f.field_type.kind === 'Boolean') sample[f.name] = true;
+                        else if (f.field_type.kind === 'ProgressBar') sample[f.name] = 75;
+                        else if (f.field_type.kind === 'Money' || f.name === 'price') sample[f.name] = 99.99;
+                        else if (f.field_type.kind === 'Enum') sample[f.name] = (f.field_type.config?.choices || [])[1] || 'High';
+                        else if (f.name === 'category') sample[f.name] = 'Productivity';
+                        else if (f.name === 'title' || f.name === 'name') sample[f.name] = 'Deploy Oxide_CG Microservice to Production';
+                        else if (f.name === 'description') sample[f.name] = 'Automated high-performance task managed by Oxide_CG Rust backend.';
+                        else sample[f.name] = 'Sample Data';
+                      });
+                      setFormData(sample);
+                      setErrorMessage('');
+                    }}
+                    className="px-2.5 py-1 bg-brand-500/10 hover:bg-brand-500/20 text-brand-400 border border-brand-500/30 rounded-lg text-xs font-semibold transition"
+                    title="Auto-fill sample data for rapid testing"
+                  >
+                    ✨ Auto-Fill Sample
+                  </button>
+                )}
+                <button onClick={onClose} title="Close (Esc)" className="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+              </div>
             </div>
 
             {/* ERROR BANNER */}
