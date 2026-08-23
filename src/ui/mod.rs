@@ -1,6 +1,7 @@
 pub mod angular_sdk;
 pub mod assets;
 pub mod react_sdk;
+pub mod todo_showcase;
 pub mod vue_sdk;
 
 use axum::http::{header, StatusCode};
@@ -17,6 +18,12 @@ pub async fn admin_ui_handler(
     axum::extract::State(config): axum::extract::State<Arc<UiConfig>>,
 ) -> Html<String> {
     Html(assets::admin_react_spa_html(&config.site_name))
+}
+
+pub async fn todo_showcase_handler(
+    axum::extract::State(config): axum::extract::State<Arc<UiConfig>>,
+) -> Html<String> {
+    Html(todo_showcase::todo_showcase_html(&config.site_name))
 }
 
 pub async fn react_sdk_handler(

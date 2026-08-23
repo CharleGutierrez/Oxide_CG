@@ -10,7 +10,7 @@ use crate::core::hooks::ModelHook;
 use crate::core::resilience::{panic_recovery_layer, CircuitBreaker, SystemWatchdog};
 use crate::db::{DatabaseType, SchemaMigrator, SqliteDatabase};
 use crate::model::{ModelSchema, SchemaRegistry};
-use crate::ui::{admin_ui_handler, angular_sdk_handler, react_sdk_handler, vue_sdk_handler, UiConfig};
+use crate::ui::{admin_ui_handler, angular_sdk_handler, react_sdk_handler, todo_showcase_handler, vue_sdk_handler, UiConfig};
 use axum::{routing::get, Router};
 use std::collections::HashMap;
 use std::net::SocketAddr;
@@ -132,6 +132,8 @@ impl OxideCGApp {
         let ui_router = Router::new()
             .route("/", get(admin_ui_handler))
             .route("/admin", get(admin_ui_handler))
+            .route("/todos", get(todo_showcase_handler))
+            .route("/showcase", get(todo_showcase_handler))
             .route("/api/sdk/react.ts", get(react_sdk_handler))
             .route("/api/sdk/vue.ts", get(vue_sdk_handler))
             .route("/api/sdk/angular.ts", get(angular_sdk_handler))

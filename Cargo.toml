@@ -3,10 +3,10 @@ name = "oxide_cg"
 version = "0.1.0"
 edition = "2021"
 authors = ["Oxide_CG Team"]
-description = "Ultra-fast, zero-overhead Rust web framework and auto-generated Admin/REST engine with multi-database support (SQLite, PostgreSQL, MySQL), React ecosystem, and AI Tuner decision engine."
+description = "Ultra-fast, zero-overhead Rust web framework and auto-generated Admin/REST engine with multi-database support (SQLite, PostgreSQL, MySQL), React/Vue/Angular ecosystem, and AI Tuner decision engine."
 license = "MIT OR Apache-2.0"
 readme = "README.md"
-keywords = ["admin", "framework", "react", "axum", "pocketbase"]
+keywords = ["admin", "framework", "react", "vue", "angular", "axum", "pocketbase"]
 categories = ["web-programming::http-server", "database"]
 
 [dependencies]
@@ -30,3 +30,7 @@ uuid = { version = "1.8", features = ["v4", "serde"] }
 [[example]]
 name = "demo"
 path = "examples/demo.rs"
+
+[[example]]
+name = "todo_app"
+path = "examples/todo_app.rs"
