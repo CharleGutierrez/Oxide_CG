@@ -1,0 +1,32 @@
+[package]
+name = "oxide_cg"
+version = "0.1.0"
+edition = "2021"
+authors = ["Oxide_CG Team"]
+description = "Ultra-fast, zero-overhead Rust web framework and auto-generated Admin/REST engine with multi-database support (SQLite, PostgreSQL, MySQL), React ecosystem, and AI Tuner decision engine."
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+keywords = ["admin", "framework", "react", "axum", "pocketbase"]
+categories = ["web-programming::http-server", "database"]
+
+[dependencies]
+tokio = { version = "1.38", features = ["full"] }
+axum = { version = "0.7", features = ["macros", "multipart"] }
+tower = { version = "0.5" }
+tower-http = { version = "0.5", features = ["cors", "trace", "compression-gzip", "catch-panic"] }
+thiserror = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sqlx = { version = "0.7", features = ["runtime-tokio-native-tls", "sqlite", "postgres", "mysql", "chrono"] }
+chrono = { version = "0.4", features = ["serde"] }
+sha2 = "0.10"
+hex = "0.4"
+rand = "0.8"
+async-trait = "0.1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+uuid = { version = "1.8", features = ["v4", "serde"] }
+
+[[example]]
+name = "demo"
+path = "examples/demo.rs"
