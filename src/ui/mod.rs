@@ -5,7 +5,7 @@ pub mod todo_showcase;
 pub mod vue_sdk;
 
 use axum::http::{header, StatusCode};
-use axum::response::{Html, IntoResponse, Response};
+use axum::response::{IntoResponse, Response};
 use std::sync::Arc;
 
 #[derive(Clone)]
@@ -16,14 +16,30 @@ pub struct UiConfig {
 
 pub async fn admin_ui_handler(
     axum::extract::State(config): axum::extract::State<Arc<UiConfig>>,
-) -> Html<String> {
-    Html(assets::admin_react_spa_html(&config.site_name))
+) -> Response {
+    (
+        StatusCode::OK,
+        [
+            (header::CONTENT_TYPE, "text/html; charset=utf-8"),
+            (header::CACHE_CONTROL, "no-cache, no-store, must-revalidate"),
+        ],
+        assets::admin_react_spa_html(&config.site_name),
+    )
+        .into_response()
 }
 
 pub async fn todo_showcase_handler(
     axum::extract::State(config): axum::extract::State<Arc<UiConfig>>,
-) -> Html<String> {
-    Html(todo_showcase::todo_showcase_html(&config.site_name))
+) -> Response {
+    (
+        StatusCode::OK,
+        [
+            (header::CONTENT_TYPE, "text/html; charset=utf-8"),
+            (header::CACHE_CONTROL, "no-cache, no-store, must-revalidate"),
+        ],
+        todo_showcase::todo_showcase_html(&config.site_name),
+    )
+        .into_response()
 }
 
 pub async fn react_sdk_handler(

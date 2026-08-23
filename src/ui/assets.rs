@@ -734,6 +734,8 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
       const [loading, setLoading] = useState(true);
       const [editingRecord, setEditingRecord] = useState(null);
       const [isModalOpen, setIsModalOpen] = useState(false);
+      const [quickTitle, setQuickTitle] = useState('');
+      const [quickSaving, setQuickSaving] = useState(false);
 
       const fetchRecords = useCallback(async () => {
         if (!schema) return;
@@ -758,6 +760,52 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
       useEffect(() => {
         fetchRecords();
       }, [fetchRecords]);
+
+      const handleQuickCreate = async (e) => {
+        e.preventDefault();
+        if (!quickTitle.trim() || quickSaving) return;
+        setQuickSaving(true);
+        try {
+          const payload = {
+            title: quickTitle.trim(),
+            name: quickTitle.trim(),
+            category: 'General',
+            priority: 'Medium',
+            progress: 0,
+            is_completed: false,
+          };
+          const res = await apiRequest(`/api/d/${modelName}`, {
+            method: 'POST',
+            body: JSON.stringify(payload),
+          });
+          if (res.success) {
+            setQuickTitle('');
+            showToast(`✨ ${schema.name} created!`);
+            fetchRecords();
+          } else {
+            showToast(res.message || 'Error creating task', true);
+          }
+        } catch (err) {
+          showToast('Failed to create task', true);
+        } finally {
+          setQuickSaving(false);
+        }
+      };
+
+      const handleToggleBoolean = async (record, fieldName) => {
+        const currentVal = Boolean(record[fieldName]);
+        const newVal = !currentVal;
+        try {
+          const res = await apiRequest(`/api/d/${modelName}/${record.id}`, {
+            method: 'PUT',
+            body: JSON.stringify({ [fieldName]: newVal }),
+          });
+          if (res.success) {
+            showToast(`Updated #${record.id}`);
+            fetchRecords();
+          }
+        } catch (e) {}
+      };
 
       const handleDelete = async (id) => {
         if (!confirm(`Are you sure you want to delete record #${id}?`)) return;
@@ -794,12 +842,30 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
 
             <button
               onClick={() => { setEditingRecord(null); setIsModalOpen(true); }}
-              className="px-4 py-2.5 bg-gradient-to-r from-brand-500 to-emerald-400 hover:from-brand-600 hover:to-emerald-500 text-black font-bold text-sm rounded-xl transition shadow-lg shadow-brand-500/20 flex items-center space-x-2"
+              className="px-5 py-2.5 bg-gradient-to-r from-brand-500 to-emerald-400 hover:from-brand-600 hover:to-emerald-500 text-black font-bold text-sm rounded-xl transition shadow-lg shadow-brand-500/25 flex items-center space-x-2 cursor-pointer"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"/></svg>
-              <span>New {schema.name}</span>
+              <span>+ New {schema.name}</span>
             </button>
           </div>
+
+          {/* QUICK INLINE ADD TASK BAR */}
+          <form onSubmit={handleQuickCreate} className="flex items-center space-x-3 p-2 bg-slate-900/60 border border-slate-800 rounded-xl">
+            <input
+              type="text"
+              value={quickTitle}
+              onChange={(e) => setQuickTitle(e.target.value)}
+              placeholder={`Quickly add a ${schema.name} item and press Enter ↵...`}
+              className="flex-1 bg-transparent border-none text-sm text-slate-100 placeholder-slate-500 focus:outline-none px-3 py-1.5"
+            />
+            <button
+              type="submit"
+              disabled={!quickTitle.trim() || quickSaving}
+              className="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-white text-xs font-semibold rounded-lg transition"
+            >
+              {quickSaving ? 'Adding...' : 'Add ↵'}
+            </button>
+          </form>
 
           {/* TABLE */}
           <div className="overflow-x-auto custom-scrollbar border border-slate-800 rounded-xl">
@@ -816,7 +882,7 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
                 {loading ? (
                   <tr><td colSpan="100" className="p-8 text-center text-slate-500 font-sans">Loading records...</td></tr>
                 ) : records.length === 0 ? (
-                  <tr><td colSpan="100" className="p-8 text-center text-slate-500 font-sans">No records found. Click "+ New" to add one.</td></tr>
+                  <tr><td colSpan="100" className="p-8 text-center text-slate-500 font-sans">No records found. Click "+ New" or use Quick-Add above.</td></tr>
                 ) : (
                   records.map(r => (
                     <tr key={r.id} className="hover:bg-slate-800/40 transition">
@@ -824,11 +890,19 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
                         const val = r[f.name];
                         let content = val === null || val === undefined ? <span className="text-slate-600 font-sans">null</span> : String(val);
 
-                        if (typeof val === 'boolean') {
-                          content = val ? (
-                            <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/20 text-emerald-300 font-sans font-semibold">TRUE</span>
-                          ) : (
-                            <span className="px-2 py-0.5 rounded-full text-[10px] bg-slate-700 text-slate-400 font-sans font-semibold">FALSE</span>
+                        if (typeof val === 'boolean' || f.field_type.kind === 'Boolean') {
+                          const isChecked = Boolean(val);
+                          content = (
+                            <button
+                              type="button"
+                              onClick={() => handleToggleBoolean(r, f.name)}
+                              className={`px-2.5 py-1 rounded-full text-[10px] font-sans font-bold flex items-center space-x-1.5 transition cursor-pointer ${
+                                isChecked ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-slate-800 text-slate-400 border border-slate-700'
+                              }`}
+                              title="Click to toggle status"
+                            >
+                              <span>{isChecked ? '✓ TRUE' : '✕ FALSE'}</span>
+                            </button>
                           );
                         } else if (f.field_type.kind === 'Money') {
                           content = <span className="text-emerald-400 font-semibold">${Number(val || 0).toFixed(2)}</span>;
@@ -848,8 +922,8 @@ pub fn admin_react_spa_html(site_name: &str) -> String {
                         return <td key={f.name} className="px-4 py-3 text-slate-300 truncate max-w-xs">{content}</td>;
                       })}
                       <td className="px-4 py-3 text-right space-x-3 font-sans">
-                        <button onClick={() => { setEditingRecord(r); setIsModalOpen(true); }} className="text-brand-400 hover:text-brand-300 font-semibold text-xs">Edit</button>
-                        <button onClick={() => handleDelete(r.id)} className="text-rose-400 hover:text-rose-300 font-semibold text-xs">Delete</button>
+                        <button onClick={() => { setEditingRecord(r); setIsModalOpen(true); }} className="text-brand-400 hover:text-brand-300 font-semibold text-xs cursor-pointer">Edit</button>
+                        <button onClick={() => handleDelete(r.id)} className="text-rose-400 hover:text-rose-300 font-semibold text-xs cursor-pointer">Delete</button>
                       </td>
                     </tr>
                   ))
