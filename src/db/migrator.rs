@@ -107,7 +107,7 @@ impl SchemaMigrator {
             let sql_type = match &field.field_type {
                 FieldType::Integer | FieldType::ForeignKey { .. } => "INTEGER",
                 FieldType::Float | FieldType::Money { .. } | FieldType::ProgressBar { .. } => "REAL",
-                FieldType::Boolean => "INTEGER",
+                FieldType::Boolean => "BOOLEAN",
                 FieldType::DateTime => "TEXT",
                 FieldType::Json => "TEXT",
                 _ => "TEXT",
