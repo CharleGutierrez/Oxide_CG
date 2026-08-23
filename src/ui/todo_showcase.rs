@@ -231,12 +231,21 @@ pub fn todo_showcase_html(site_name: &str) -> String {
 
                 <div>
                   <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Initial Progress: {{ newTask.progress }}%</label>
-                  <input type="range" min="0" max="100" v-model="newTask.progress" class="w-full accent-emerald-500" />
+                  <input type="range" min="0" max="100" v-model="newTask.progress" class="w-full accent-emerald-500 cursor-pointer" />
                 </div>
 
-                <div class="flex justify-end space-x-3 pt-2">
-                  <button type="button" @click="isModalOpen = false" class="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white">Cancel</button>
-                  <button type="submit" class="px-5 py-2 bg-gradient-to-r from-emerald-500 to-green-400 hover:from-emerald-600 text-black text-xs font-bold rounded-xl transition">Create Task</button>
+                <div class="flex justify-between items-center pt-2">
+                  <button 
+                    type="button" 
+                    @click="newTask.title = 'Build Vue 3 Reactive State with Oxide_CG Composables'; newTask.category = 'Vue Engineering'; newTask.priority = 'Critical'; newTask.progress = 90;"
+                    class="text-xs text-emerald-400 hover:text-emerald-300 font-semibold"
+                  >
+                    ✨ Auto-Fill Sample
+                  </button>
+                  <div class="flex space-x-2">
+                    <button type="button" @click="isModalOpen = false" class="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white">Cancel</button>
+                    <button type="submit" class="px-5 py-2 bg-gradient-to-r from-emerald-500 to-green-400 hover:from-emerald-600 text-black text-xs font-bold rounded-xl transition">Create Task</button>
+                  </div>
                 </div>
               </form>
             </div>
@@ -306,11 +315,20 @@ pub fn todo_showcase_html(site_name: &str) -> String {
               </div>
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Initial Progress</label>
-                <input id="ng-progress" type="range" min="0" max="100" value="0" class="w-full accent-rose-500">
+                <input id="ng-progress" type="range" min="0" max="100" value="0" class="w-full accent-rose-500 cursor-pointer">
               </div>
-              <div class="flex justify-end space-x-3 pt-2">
-                <button type="button" onclick="window.AngularApp.closeModal()" class="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white">Cancel</button>
-                <button type="submit" class="px-5 py-2 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 text-white text-xs font-bold rounded-xl transition">Create Task</button>
+              <div class="flex justify-between items-center pt-2">
+                <button 
+                  type="button" 
+                  onclick="document.getElementById('ng-title').value = 'Connect Angular 17 Standalone Signals to Oxide_CG'; document.getElementById('ng-category').value = 'Angular Signals'; document.getElementById('ng-priority').value = 'Critical'; document.getElementById('ng-progress').value = '80';"
+                  class="text-xs text-rose-400 hover:text-rose-300 font-semibold"
+                >
+                  ✨ Auto-Fill Sample
+                </button>
+                <div class="flex space-x-2">
+                  <button type="button" onclick="window.AngularApp.closeModal()" class="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white">Cancel</button>
+                  <button type="submit" class="px-5 py-2 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 text-white text-xs font-bold rounded-xl transition">Create Task</button>
+                </div>
               </div>
             </form>
           </div>
@@ -503,7 +521,9 @@ pub fn todo_showcase_html(site_name: &str) -> String {
             <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
               <div className="glass max-w-md w-full p-6 rounded-2xl border border-slate-800 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-white">⚛️ New Task (React 18)</h3>
+                  <h3 className="text-lg font-bold text-white flex items-center space-x-2">
+                    <span>⚛️ New Task (React 18)</span>
+                  </h3>
                   <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white p-1">✕</button>
                 </div>
                 <form onSubmit={handleCreate} className="space-y-4">
@@ -540,11 +560,25 @@ pub fn todo_showcase_html(site_name: &str) -> String {
                   </div>
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Progress: {newProgress}%</label>
-                    <input type="range" min="0" max="100" value={newProgress} onChange={(e) => setNewProgress(e.target.value)} className="w-full accent-react-500" />
+                    <input type="range" min="0" max="100" value={newProgress} onChange={(e) => setNewProgress(e.target.value)} className="w-full accent-react-500 cursor-pointer" />
                   </div>
-                  <div className="flex justify-end space-x-3 pt-2">
-                    <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white">Cancel</button>
-                    <button type="submit" className="px-5 py-2 bg-react-500 hover:bg-react-600 text-black text-xs font-bold rounded-xl transition">Create Task</button>
+                  <div className="flex justify-between items-center pt-2">
+                    <button 
+                      type="button" 
+                      onClick={() => {
+                        setNewTitle('Optimize React 18 Concurrent Rendering with Oxide_CG');
+                        setNewCategory('Engineering');
+                        setNewPriority('Critical');
+                        setNewProgress(85);
+                      }}
+                      className="text-xs text-react-400 hover:text-react-300 font-semibold"
+                    >
+                      ✨ Auto-Fill Sample
+                    </button>
+                    <div className="flex space-x-2">
+                      <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white">Cancel</button>
+                      <button type="submit" className="px-5 py-2 bg-react-500 hover:bg-react-600 text-black text-xs font-bold rounded-xl transition">Create Task</button>
+                    </div>
                   </div>
                 </form>
               </div>
