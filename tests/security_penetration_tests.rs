@@ -114,8 +114,12 @@ fn test_security_constant_time_password_verification() {
     // Valid verification
     assert!(Crypto::verify_password(password, &hash));
 
-    // Tampered hash with altered signature (timing attack defense)
-    let tampered_hash = format!("{}a", &hash[..hash.len() - 1]);
+    // Wrong password check
+    assert!(!Crypto::verify_password("WrongPassword123", &hash));
+
+    // Tampered hash with altered hash component (timing attack defense)
+    let parts: Vec<&str> = hash.split('$').collect();
+    let tampered_hash = format!("$s2${}$ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", parts[2]);
     assert!(!Crypto::verify_password(password, &tampered_hash));
 
     // Empty and garbage hashes

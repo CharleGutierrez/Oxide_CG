@@ -79,7 +79,7 @@ pub fn todo_showcase_html(site_name: &str) -> String {
             <span>Oxide_CG Multi-Frontend Todo App</span>
             <span class="text-[10px] bg-brand-500/20 text-brand-300 border border-brand-500/30 px-2 py-0.5 rounded-full font-mono font-bold">1 Backend &bull; 3 Frontends</span>
           </h1>
-          <p class="text-xs text-slate-400">Powered by high-performance Rust core on Axum & SQLite/Postgres</p>
+          <p class="text-xs text-slate-400">Powered by high-performance Rust core on Axum & SQLite/Postgres/MySQL</p>
         </div>
       </div>
 
@@ -151,7 +151,7 @@ pub fn todo_showcase_html(site_name: &str) -> String {
               </h2>
               <p class="text-xs text-slate-400 mt-1">Reactive state with Vue Composition API and Oxide_CG backend</p>
             </div>
-            <button @click="openCreateModal" class="px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-green-400 hover:from-emerald-600 hover:to-green-500 text-black font-bold text-sm rounded-xl transition shadow-lg shadow-emerald-500/20 flex items-center space-x-2">
+            <button @click="isModalOpen = true" class="px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-green-400 hover:from-emerald-600 hover:to-green-500 text-black font-bold text-sm rounded-xl transition shadow-lg shadow-emerald-500/20 flex items-center space-x-2">
               <span>+ Add Task</span>
             </button>
           </div>
@@ -172,7 +172,7 @@ pub fn todo_showcase_html(site_name: &str) -> String {
             <div v-else-if="filteredTodos.length === 0" class="p-8 text-center text-slate-500 font-sans border border-slate-800 rounded-xl">No tasks matching your filter. Click "+ Add Task" to create one.</div>
             <div v-for="t in filteredTodos" :key="t.id" class="p-4 rounded-xl bg-slate-900/80 border border-slate-800/80 hover:border-emerald-500/40 transition flex items-center justify-between gap-4">
               <div class="flex items-center space-x-4 flex-1">
-                <input type="checkbox" :checked="t.is_completed" @change="toggleTodo(t)" class="w-5 h-5 rounded text-emerald-500 bg-slate-900 border-slate-700 cursor-pointer">
+                <input type="checkbox" :checked="Boolean(t.is_completed)" @change="toggleTodo(t)" class="w-5 h-5 rounded text-emerald-500 bg-slate-900 border-slate-700 cursor-pointer">
                 <div class="space-y-1">
                   <div :class="t.is_completed ? 'line-through text-slate-500' : 'text-white font-semibold'" class="text-sm">{{ t.title }}</div>
                   <div class="flex items-center space-x-2 text-[11px] text-slate-400">
@@ -183,6 +183,62 @@ pub fn todo_showcase_html(site_name: &str) -> String {
                 </div>
               </div>
               <button @click="deleteTodo(t.id)" class="text-slate-500 hover:text-rose-400 text-xs font-bold p-2 transition">Delete ✕</button>
+            </div>
+          </div>
+
+          <!-- COMPLETE VUE 3 CREATION MODAL -->
+          <div v-if="isModalOpen" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="glass max-w-md w-full p-6 rounded-2xl border border-slate-800 space-y-4">
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+                  <span>🟢 New Task (Vue 3)</span>
+                </h3>
+                <button @click="isModalOpen = false" class="text-slate-400 hover:text-white p-1">✕</button>
+              </div>
+
+              <form @submit.prevent="handleCreate" class="space-y-4">
+                <div>
+                  <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Task Title</label>
+                  <input 
+                    type="text" 
+                    v-model="newTask.title" 
+                    placeholder="e.g. Build Vue 3 composables for Oxide_CG" 
+                    class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-slate-100 focus:border-emerald-500" 
+                    required 
+                  />
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Category</label>
+                    <select v-model="newTask.category" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-100 focus:border-emerald-500">
+                      <option value="Vue Engineering">Vue Engineering</option>
+                      <option value="Nuxt 3">Nuxt 3</option>
+                      <option value="Pinia State">Pinia State</option>
+                      <option value="DevOps">DevOps</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Priority</label>
+                    <select v-model="newTask.priority" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-100 focus:border-emerald-500">
+                      <option value="Low">Low</option>
+                      <option value="Medium">Medium</option>
+                      <option value="High">High</option>
+                      <option value="Critical">Critical</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Initial Progress: {{ newTask.progress }}%</label>
+                  <input type="range" min="0" max="100" v-model="newTask.progress" class="w-full accent-emerald-500" />
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-2">
+                  <button type="button" @click="isModalOpen = false" class="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white">Cancel</button>
+                  <button type="submit" class="px-5 py-2 bg-gradient-to-r from-emerald-500 to-green-400 hover:from-emerald-600 text-black text-xs font-bold rounded-xl transition">Create Task</button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
@@ -214,6 +270,50 @@ pub fn todo_showcase_html(site_name: &str) -> String {
 
         <div class="space-y-3" id="ng-todo-list">
           <!-- Rendered by AngularApp -->
+        </div>
+
+        <!-- COMPLETE ANGULAR MODAL -->
+        <div id="ng-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+          <div class="glass max-w-md w-full p-6 rounded-2xl border border-slate-800 space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-bold text-white">🅰️ New Task (Angular 17+ Signals)</h3>
+              <button onclick="window.AngularApp.closeModal()" class="text-slate-400 hover:text-white p-1">✕</button>
+            </div>
+            <form onsubmit="event.preventDefault(); window.AngularApp.handleCreate();" class="space-y-4">
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Task Title</label>
+                <input id="ng-title" type="text" placeholder="e.g. Implement Angular Signal Query" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-slate-100 focus:border-rose-500" required>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Category</label>
+                  <select id="ng-category" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-100">
+                    <option value="Angular Signals">Angular Signals</option>
+                    <option value="RxJS">RxJS</option>
+                    <option value="Standalone Core">Standalone Core</option>
+                    <option value="DevOps">DevOps</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Priority</label>
+                  <select id="ng-priority" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-100">
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High" selected>High</option>
+                    <option value="Critical">Critical</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Initial Progress</label>
+                <input id="ng-progress" type="range" min="0" max="100" value="0" class="w-full accent-rose-500">
+              </div>
+              <div class="flex justify-end space-x-3 pt-2">
+                <button type="button" onclick="window.AngularApp.closeModal()" class="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white">Cancel</button>
+                <button type="submit" class="px-5 py-2 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 text-white text-xs font-bold rounded-xl transition">Create Task</button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>
@@ -402,7 +502,10 @@ pub fn todo_showcase_html(site_name: &str) -> String {
           {isModalOpen && (
             <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
               <div className="glass max-w-md w-full p-6 rounded-2xl border border-slate-800 space-y-4">
-                <h3 className="text-lg font-bold text-white">Create Task (React 18)</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-bold text-white">⚛️ New Task (React 18)</h3>
+                  <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white p-1">✕</button>
+                </div>
                 <form onSubmit={handleCreate} className="space-y-4">
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Task Title</label>
@@ -457,7 +560,7 @@ pub fn todo_showcase_html(site_name: &str) -> String {
 
   <!-- 2. VUE 3 COMPOSITION ENGINE -->
   <script>
-    const { createApp, ref, computed, onMounted } = Vue;
+    const { createApp, ref, computed, reactive, onMounted } = Vue;
 
     const vueApp = createApp({
       setup() {
@@ -465,6 +568,14 @@ pub fn todo_showcase_html(site_name: &str) -> String {
         const filterStatus = ref('all');
         const searchQuery = ref('');
         const loading = ref(true);
+        const isModalOpen = ref(false);
+
+        const newTask = reactive({
+          title: '',
+          category: 'Vue Engineering',
+          priority: 'High',
+          progress: 0,
+        });
 
         const fetchTodos = async () => {
           loading.value = true;
@@ -496,20 +607,23 @@ pub fn todo_showcase_html(site_name: &str) -> String {
         const activeCount = computed(() => todos.value.filter(t => !t.is_completed).length);
         const completedCount = computed(() => todos.value.filter(t => t.is_completed).length);
 
-        const openCreateModal = async () => {
-          const title = prompt("Enter task title (Vue 3):");
-          if (!title) return;
+        const handleCreate = async () => {
+          if (!newTask.title.trim()) return;
           await fetch('/api/d/todo', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              title: title.trim(),
-              category: 'Vue Engineering',
-              priority: 'Medium',
-              progress: 0,
+              title: newTask.title.trim(),
+              category: newTask.category,
+              priority: newTask.priority,
+              progress: Number(newTask.progress),
               is_completed: false
             })
           });
+
+          newTask.title = '';
+          newTask.progress = 0;
+          isModalOpen.value = false;
           fetchTodos();
         };
 
@@ -532,10 +646,12 @@ pub fn todo_showcase_html(site_name: &str) -> String {
           filterStatus,
           searchQuery,
           loading,
+          isModalOpen,
+          newTask,
           filteredTodos,
           activeCount,
           completedCount,
-          openCreateModal,
+          handleCreate,
           toggleTodo,
           deleteTodo,
         };
@@ -621,20 +737,34 @@ pub fn todo_showcase_html(site_name: &str) -> String {
           searchSignal = q;
           renderAngularView();
         },
-        async openCreateModal() {
-          const title = prompt("Enter task title (Angular 17+ Signals):");
-          if (!title) return;
+        openCreateModal() {
+          document.getElementById('ng-modal').classList.remove('hidden');
+        },
+        closeModal() {
+          document.getElementById('ng-modal').classList.add('hidden');
+        },
+        async handleCreate() {
+          const title = document.getElementById('ng-title').value;
+          const category = document.getElementById('ng-category').value;
+          const priority = document.getElementById('ng-priority').value;
+          const progress = Number(document.getElementById('ng-progress').value) || 0;
+
+          if (!title.trim()) return;
+
           await fetch('/api/d/todo', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               title: title.trim(),
-              category: 'Angular Signals',
-              priority: 'High',
-              progress: 0,
+              category,
+              priority,
+              progress,
               is_completed: false
             })
           });
+
+          document.getElementById('ng-title').value = '';
+          window.AngularApp.closeModal();
           fetchAngularTodos();
         },
         async toggleTodo(id, newStatus) {
