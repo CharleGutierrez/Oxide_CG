@@ -37,10 +37,13 @@ impl QueryOptions {
                     offset = o.max(0);
                 }
             } else if k == "$order" {
-                if v.starts_with('-') {
-                    order_by = Some(format!("\"{}\" DESC", &v[1..]));
-                } else {
-                    order_by = Some(format!("\"{}\" ASC", v));
+                let field_to_check = if v.starts_with('-') { &v[1..] } else { v };
+                if !field_to_check.is_empty() && field_to_check.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
+                    if v.starts_with('-') {
+                        order_by = Some(format!("\"{}\" DESC", &v[1..]));
+                    } else {
+                        order_by = Some(format!("\"{}\" ASC", v));
+                    }
                 }
             } else if k == "$search" || k == "$q" {
                 if !v.trim().is_empty() {
