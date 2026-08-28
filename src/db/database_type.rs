@@ -41,3 +41,34 @@ impl DatabaseType {
         matches!(self, Self::Sqlite)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_from_url_postgres() {
+        assert_eq!(DatabaseType::from_url("postgres://user:pass@localhost/db"), DatabaseType::Postgres);
+        assert_eq!(DatabaseType::from_url("POSTGRES://user:pass@localhost/db"), DatabaseType::Postgres);
+        assert_eq!(DatabaseType::from_url("postgresql://user:pass@localhost/db"), DatabaseType::Postgres);
+        assert_eq!(DatabaseType::from_url("POSTGRESQL://user:pass@localhost/db"), DatabaseType::Postgres);
+    }
+
+    #[test]
+    fn test_from_url_mysql() {
+        assert_eq!(DatabaseType::from_url("mysql://user:pass@localhost/db"), DatabaseType::MySql);
+        assert_eq!(DatabaseType::from_url("MYSQL://user:pass@localhost/db"), DatabaseType::MySql);
+        assert_eq!(DatabaseType::from_url("mariadb://user:pass@localhost/db"), DatabaseType::MySql);
+        assert_eq!(DatabaseType::from_url("MARIADB://user:pass@localhost/db"), DatabaseType::MySql);
+    }
+
+    #[test]
+    fn test_from_url_sqlite() {
+        assert_eq!(DatabaseType::from_url("sqlite://app.db"), DatabaseType::Sqlite);
+        assert_eq!(DatabaseType::from_url("SQLITE://app.db"), DatabaseType::Sqlite);
+        assert_eq!(DatabaseType::from_url("sqlite::memory:"), DatabaseType::Sqlite);
+        // Fallback case
+        assert_eq!(DatabaseType::from_url("unknown://user:pass@localhost/db"), DatabaseType::Sqlite);
+        assert_eq!(DatabaseType::from_url("just_a_string"), DatabaseType::Sqlite);
+    }
+}
