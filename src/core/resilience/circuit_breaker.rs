@@ -39,17 +39,17 @@ impl CircuitBreaker {
 
     /// Check if execution is allowed or if circuit is open
     pub fn allow_execution(&self) -> bool {
-        let current_state = *self.state.read().unwrap();
+        let current_state = *self.state.read().unwrap_or_else(|e| e.into_inner());
         match current_state {
             BreakerState::Closed => true,
             BreakerState::HalfOpen => true,
             BreakerState::Open => {
-                let elapsed = self.last_state_change.read().unwrap().elapsed();
+                let elapsed = self.last_state_change.read().unwrap_or_else(|e| e.into_inner()).elapsed();
                 if elapsed >= self.cooldown_duration {
                     // Transition to HalfOpen to probe if system has self-healed
-                    let mut s = self.state.write().unwrap();
+                    let mut s = self.state.write().unwrap_or_else(|e| e.into_inner());
                     *s = BreakerState::HalfOpen;
-                    *self.last_state_change.write().unwrap() = Instant::now();
+                    *self.last_state_change.write().unwrap_or_else(|e| e.into_inner()) = Instant::now();
                     true
                 } else {
                     false
@@ -60,7 +60,7 @@ impl CircuitBreaker {
 
     /// Record a successful operation (resets failures and completes self-healing)
     pub fn record_success(&self) {
-        let mut s = self.state.write().unwrap();
+        let mut s = self.state.write().unwrap_or_else(|e| e.into_inner());
         if *s == BreakerState::HalfOpen {
             *s = BreakerState::Closed;
             self.total_heals.fetch_add(1, Ordering::Relaxed);
@@ -72,17 +72,17 @@ impl CircuitBreaker {
     pub fn record_failure(&self) {
         let failures = self.consecutive_failures.fetch_add(1, Ordering::Relaxed) + 1;
         if failures >= self.failure_threshold {
-            let mut s = self.state.write().unwrap();
+            let mut s = self.state.write().unwrap_or_else(|e| e.into_inner());
             if *s != BreakerState::Open {
                 *s = BreakerState::Open;
-                *self.last_state_change.write().unwrap() = Instant::now();
+                *self.last_state_change.write().unwrap_or_else(|e| e.into_inner()) = Instant::now();
                 self.total_trips.fetch_add(1, Ordering::Relaxed);
             }
         }
     }
 
     pub fn state(&self) -> BreakerState {
-        *self.state.read().unwrap()
+        *self.state.read().unwrap_or_else(|e| e.into_inner())
     }
 
     pub fn status_json(&self) -> serde_json::Value {
